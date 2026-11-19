@@ -1,0 +1,75 @@
+name: LambdaTest parallel tests
+
+on:
+  schedule:
+    # Every 15 minutes on Nov 19 (cron runs in UTC).
+    # The "check-window" job stops runs after 21:00 IST (15:30 UTC) on 2026-11-19.
+    - cron: "*/15 * 19 11 *"
+  workflow_dispatch: # allow manual runs from the Actions tab
+
+concurrency:
+  group: lambdatest-parallel
+  cancel-in-progress: false
+
+env:
+  # 2026-11-19 21:00 IST
+  END_AT_UTC: "2026-11-19T15:30:00Z"
+
+jobs:
+  check-window:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.window.outputs.run }}
+    steps:
+      - id: window
+        name: Skip scheduled runs after the end time
+        run: |
+          now=$(date -u +%s)
+          end=$(date -u -d "$END_AT_UTC" +%s)
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$now" -gt "$end" ]; then
+            echo "Past $END_AT_UTC - skipping."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  test:
+    needs: check-window
+    if: needs.check-window.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: [android-parallel, ios-parallel]
+    name: ${{ matrix.profile }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Create .env from repository secrets
+        env:
+          LT_USERNAME: ${{ secrets.LT_USERNAME }}
+          LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
+        run: |
+          if [ -z "$LT_USERNAME" ] || [ -z "$LT_ACCESS_KEY" ]; then
+            echo "::error::Set LT_USERNAME and LT_ACCESS_KEY in Settings > Secrets and variables > Actions"
+            exit 1
+          fi
+          printf 'LT_USERNAME=%s\nLT_ACCESS_KEY=%s\n' "$LT_USERNAME" "$LT_ACCESS_KEY" > .env
+
+      - name: Run ${{ matrix.profile }}
+        run: mvn -B test -P ${{ matrix.profile }}
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports-${{ matrix.profile }}
+          path: target/surefire-reports/
+          if-no-files-found: ignore
