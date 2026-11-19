@@ -37,6 +37,7 @@ jobs:
     needs: check-window
     if: needs.check-window.outputs.run == 'true'
     runs-on: ubuntu-latest
+    environment: LT_Environment # holds the LT_USERNAME / LT_ACCESS_KEY secrets
     timeout-minutes: 30
     strategy:
       fail-fast: false
@@ -58,7 +59,7 @@ jobs:
           LT_ACCESS_KEY: ${{ secrets.LT_ACCESS_KEY }}
         run: |
           if [ -z "$LT_USERNAME" ] || [ -z "$LT_ACCESS_KEY" ]; then
-            echo "::error::Set LT_USERNAME and LT_ACCESS_KEY in Settings > Secrets and variables > Actions"
+            echo "::error::Set LT_USERNAME and LT_ACCESS_KEY as secrets of the LT_Environment environment"
             exit 1
           fi
           printf 'LT_USERNAME=%s\nLT_ACCESS_KEY=%s\n' "$LT_USERNAME" "$LT_ACCESS_KEY" > .env
