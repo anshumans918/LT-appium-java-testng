@@ -35,6 +35,7 @@ public class iOSApp {
         capabilities.setCapability("platformName", platform);
         capabilities.setCapability("isRealMobile", true);
         capabilities.setCapability("app", app_id); //Enter your app url
+        capabilities.setCapability("advancedProfiling", true); //Enables performance metrics for the app
         capabilities.setCapability("network", false);
         capabilities.setCapability("project", "MaverickProjectTesting");
         capabilities.setCapability("visual", true);
