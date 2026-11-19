@@ -28,3 +28,6 @@ src/.DS_Store
 /target/
 /AppTest.iml
 /apache-maven-3.8.5/
+
+# Local credentials
+.env

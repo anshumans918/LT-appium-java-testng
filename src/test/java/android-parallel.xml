@@ -2,8 +2,8 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite thread-count="100" name="Mobile" parallel="tests">
 
-    <test name="AndroidAppTest 1">
-        <parameter name="version" value="11"/>
+    <test name="Android 15">
+        <parameter name="version" value="15"/>
         <parameter name="platform" value="Android"/>
         <parameter name="device" value="Galaxy.*"/>
         <classes>
@@ -11,10 +11,28 @@
         </classes>
     </test>
 
-    <test name="AndroidAppTest 2">
-        <parameter name="version" value="12"/>
+    <test name="Android 16">
+        <parameter name="version" value="16"/>
         <parameter name="platform" value="Android"/>
         <parameter name="device" value="Galaxy.*"/>
+        <classes>
+            <class name="AndroidApp"/>
+        </classes>
+    </test>
+
+    <test name="Android 17">
+        <parameter name="version" value="17"/>
+        <parameter name="platform" value="Android"/>
+        <parameter name="device" value="Pixel.*"/>
+        <classes>
+            <class name="AndroidApp"/>
+        </classes>
+    </test>
+
+    <test name="Android Tablet 15">
+        <parameter name="version" value="15"/>
+        <parameter name="platform" value="Android"/>
+        <parameter name="device" value="Galaxy Tab A9+"/>
         <classes>
             <class name="AndroidApp"/>
         </classes>
