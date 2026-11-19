@@ -23,36 +23,64 @@ With TestMu AI (Formerly LambdaTest), you can perform End-to-End (E2E) testing b
 
 ### Setup
 
-Clone and install dependencies:
+**1. Clone the repo and install dependencies**
 
 ```bash
-git clone https://github.com/LambdaTest/LT-appium-java-testng && cd LT-appium-java-testng
-mvn clean install
+git clone https://github.com/anshumans918/LT-appium-java-testng.git && cd LT-appium-java-testng
+mvn clean install -DskipTests
 ```
 
-Set your credentials as environment variables.
+**2. Add your credentials to a `.env` file**
 
-**macOS / Linux:**
+The tests read `LT_USERNAME` and `LT_ACCESS_KEY` **only** from a `.env` file in the project root. Shell environment variables are ignored. Copy the template and fill it in:
 
 ```bash
-export LT_USERNAME="YOUR_USERNAME"
-export LT_ACCESS_KEY="YOUR_ACCESS_KEY"
+cp .env.example .env
 ```
 
-**Windows:**
-
-```bash
-set LT_USERNAME="YOUR_USERNAME"
-set LT_ACCESS_KEY="YOUR_ACCESS_KEY"
+```dotenv
+LT_USERNAME=your_username
+LT_ACCESS_KEY=your_access_key
 ```
+
+You can find both values in your TestMu AI (Formerly LambdaTest) dashboard under **Account Settings → Password & Security**. `.env` is listed in `.gitignore`, so your credentials stay out of git. If either value is missing or blank, the tests stop before starting a session, with an error such as `LT_USERNAME is not set in the .env file`.
+
+**3. Upload your app and set its App ID**
+
+Upload your `.apk` (Android) or `.ipa` (iOS) to TestMu AI, either from the dashboard or with the [app upload API](https://www.testmuai.com/support/docs/appium-java/). Then set the returned ID in the test class, **including the `lt://` prefix**:
+
+| Platform | File | Field |
+|---|---|---|
+| Android | `src/main/java/AndroidApp.java` | `app_id = "lt://APP..."` |
+| iOS | `src/main/java/iOSApp.java` | `app_id = "lt://APP..."` |
+
+The app must be uploaded under the same account as the credentials in `.env`. Otherwise the session is rejected with `INVALID_APP_ID`.
 
 ### Run tests
 
+Each Maven profile runs one TestNG suite from `src/test/java/`:
+
+| Profile | Suite | What it runs |
+|---|---|---|
+| `android-single` | `android-single.xml` | One Android device |
+| `android-parallel` | `android-parallel.xml` | Several Android devices in parallel |
+| `ios-single` | `ios-single.xml` | One iOS device |
+| `ios-parallel` | `ios-parallel.xml` | Several iOS devices in parallel |
+
 ```bash
 mvn test -P android-single
+mvn test -P ios-single
+mvn test -P android-parallel
+mvn test -P ios-parallel
 ```
 
-View results on your TestMu AI dashboard.
+To change devices or OS versions, edit the `device`, `version` and `platform` parameters in the suite XML. `device` accepts a regex such as `Galaxy.*` or `iPhone.*`.
+
+### Results
+
+- A failed step, such as an element not found, fails the test and Maven reports `BUILD FAILURE`.
+- After every test, the session is marked `passed` or `failed` on the dashboard and closed straight away, so no session is left waiting for the idle timeout.
+- View the video, logs and device logs for each session on your TestMu AI dashboard under the build name set in the test class.
 
 ### Local testing with TestMu AI Tunnel
 
